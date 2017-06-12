@@ -134,4 +134,39 @@ describe('sequelize-encrypted', () => {
         assert.ok(threw && /bad decrypt$/.test(threw.message),
             'should have thrown decryption error');
     });
+
+    it('should support extra decryption keys (to facilitate key rotation)', async() => {
+        const keyOneEncryptedField = EncryptedField(Sequelize, key1);
+        const keyTwoAndOneEncryptedField = EncryptedField(Sequelize, key2, {
+          extraDecryptionKeys: [key1],
+        });
+
+        // models both access the same table, with different encryption keys
+        const KeyOneModel = sequelize.define('rotateMe', {
+            encrypted: keyOneEncryptedField.vault('encrypted'),
+            private: keyOneEncryptedField.field('private'),
+        });
+        const KeyTwoAndOneModel = sequelize.define('rotateMe', {
+            encrypted: keyTwoAndOneEncryptedField.vault('encrypted'),
+            private: keyTwoAndOneEncryptedField.field('private'),
+        });
+
+        await KeyOneModel.sync({force: true});
+
+        const modelUsingKeyOne = KeyOneModel.build();
+        const modelUsingKeyTwo = KeyTwoAndOneModel.build();
+        modelUsingKeyOne.private = 'secret!';
+        modelUsingKeyTwo.private = 'also secret!';
+        await Promise.all([
+            modelUsingKeyOne.save(),
+            modelUsingKeyTwo.save(),
+        ]);
+
+        // note: both sets of data accessed via KeyTwoAndOneModel
+        const foundFromKeyOne = await KeyTwoAndOneModel.findById(modelUsingKeyOne.id);
+        const foundFromKeyTwo = await KeyTwoAndOneModel.findById(modelUsingKeyTwo.id);
+
+        assert.equal(foundFromKeyOne.private, modelUsingKeyOne.private);
+        assert.equal(foundFromKeyTwo.private, modelUsingKeyTwo.private);
+    });
 });
