@@ -110,4 +110,28 @@ describe('sequelize-encrypted', () => {
       assert.equal(res.message,'notNull Violation: private_1 cannot be null');
     });
 
+    it('should throw error on decryption using invalid key', async() => {
+        // attempt to use key2 for vault encrypted with key1
+        const badEncryptedField = EncryptedField(Sequelize, key2);
+        const BadEncryptionUser = sequelize.define('user', {
+            name: Sequelize.STRING,
+            encrypted: badEncryptedField.vault('encrypted'),
+            private_1: badEncryptedField.field('private_1'),
+        });
+
+        const model = User.build();
+        model.private_1 = 'secret!';
+        await model.save();
+
+        let threw;
+        try {
+            const found = await BadEncryptionUser.findById(model.id)
+            found.private_1; // trigger decryption
+        } catch (error) {
+            threw = error;
+        }
+
+        assert.ok(threw && /bad decrypt$/.test(threw.message),
+            'should have thrown decryption error');
+    });
 });
