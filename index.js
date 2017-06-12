@@ -6,7 +6,14 @@ function EncryptedField(Sequelize, key, opt) {
     }
 
     var self = this;
-    self.key = new Buffer(key, 'hex');
+    var extraDecryptionKeys = Array.isArray(opt && opt.extraDecryptionKeys) ?
+        opt.extraDecryptionKeys :
+        [];
+    self.decryptionKeys = ([key].concat(extraDecryptionKeys))
+        .map(function (key) {
+            return new Buffer(key, 'hex');
+        });
+    self.encryptionKey = self.decryptionKeys[0];
     self.Sequelize = Sequelize;
 
     opt = opt || {};
@@ -34,18 +41,31 @@ EncryptedField.prototype.vault = function(name) {
 
             previous = new Buffer(previous);
 
-            var iv = previous.slice(0, self._iv_length);
-            var content = previous.slice(self._iv_length, previous.length);
-            var decipher = crypto.createDecipheriv(self._algorithm, self.key, iv);
+            function decrypt(key) {
+                var iv = previous.slice(0, self._iv_length);
+                var content = previous.slice(self._iv_length, previous.length);
+                var decipher = crypto.createDecipheriv(self._algorithm, key, iv);
 
-            var json = decipher.update(content, undefined, 'utf8') + decipher.final('utf8');
-            return JSON.parse(json);
+                var json = decipher.update(content, undefined, 'utf8') + decipher.final('utf8');
+                return JSON.parse(json);
+            }
+
+            var keyCount = self.decryptionKeys.length;
+            for (var i = 0; i < keyCount; i++) {
+                try {
+                    return decrypt(self.decryptionKeys[i]);
+                } catch (error) {
+                    if (i >= keyCount - 1) {
+                        throw error;
+                    }
+                }
+            }
         },
         set: function(value) {
             // if new data is set, we will use a new IV
             var new_iv = crypto.randomBytes(self._iv_length);
 
-            var cipher = crypto.createCipheriv(self._algorithm, self.key, new_iv);
+            var cipher = crypto.createCipheriv(self._algorithm, self.encryptionKey, new_iv);
 
             cipher.end(JSON.stringify(value), 'utf-8');
             var enc_final = Buffer.concat([new_iv, cipher.read()]);
