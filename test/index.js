@@ -58,4 +58,63 @@ describe('sequelize-encrypted', () => {
         assert.equal(found.private_1, undefined);
     });
 
+    it('should throw error on decryption using invalid key', async() => {
+        // attempt to use key2 for vault encrypted with key1
+        const badEncryptedField = EncryptedField(Sequelize, key2);
+        const BadEncryptionUser = sequelize.define('user', {
+            name: Sequelize.STRING,
+            encrypted: badEncryptedField.vault('encrypted'),
+            private_1: badEncryptedField.field('private_1'),
+        });
+
+        const model = User.build();
+        model.private_1 = 'secret!';
+        await model.save();
+
+        let threw;
+        try {
+            const found = await BadEncryptionUser.findById(model.id)
+            found.private_1; // trigger decryption
+        } catch (error) {
+            threw = error;
+        }
+
+        assert.ok(threw && /bad decrypt$/.test(threw.message),
+            'should have thrown decryption error');
+    });
+
+    it('should support extra decryption keys (to facilitate key rotation)', async() => {
+        const keyOneEncryptedField = EncryptedField(Sequelize, key1);
+        const keyTwoAndOneEncryptedField = EncryptedField(Sequelize, key2, {
+          extraDecryptionKeys: [key1],
+        });
+
+        // models both access the same table, with different encryption keys
+        const KeyOneModel = sequelize.define('rotateMe', {
+            encrypted: keyOneEncryptedField.vault('encrypted'),
+            private: keyOneEncryptedField.field('private'),
+        });
+        const KeyTwoAndOneModel = sequelize.define('rotateMe', {
+            encrypted: keyTwoAndOneEncryptedField.vault('encrypted'),
+            private: keyTwoAndOneEncryptedField.field('private'),
+        });
+
+        await KeyOneModel.sync({force: true});
+
+        const modelUsingKeyOne = KeyOneModel.build();
+        const modelUsingKeyTwo = KeyTwoAndOneModel.build();
+        modelUsingKeyOne.private = 'secret!';
+        modelUsingKeyTwo.private = 'also secret!';
+        await Promise.all([
+            modelUsingKeyOne.save(),
+            modelUsingKeyTwo.save(),
+        ]);
+
+        // note: both sets of data accessed via KeyTwoAndOneModel
+        const foundFromKeyOne = await KeyTwoAndOneModel.findById(modelUsingKeyOne.id);
+        const foundFromKeyTwo = await KeyTwoAndOneModel.findById(modelUsingKeyTwo.id);
+
+        assert.equal(foundFromKeyOne.private, modelUsingKeyOne.private);
+        assert.equal(foundFromKeyTwo.private, modelUsingKeyTwo.private);
+    });
 });
