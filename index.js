@@ -1,18 +1,18 @@
-var crypto = require('crypto');
+const crypto = require('crypto');
 
 function EncryptedField(Sequelize, key, opt) {
   if (!(this instanceof EncryptedField)) {
     return new EncryptedField(Sequelize, key, opt);
   }
 
-  var self = this;
+  const self = this;
 
   opt = opt || {};
   self._algorithm = opt.algorithm || 'aes-256-cbc';
   self._iv_length = opt.iv_length || 16;
   self.encrypted_field_name = undefined;
 
-  var extraDecryptionKeys = [];
+  let extraDecryptionKeys = [];
   if (opt.extraDecryptionKeys) {
     extraDecryptionKeys = Array.isArray(opt.extraDecryptionKeys)
       ? opt.extraDecryptionKeys
@@ -26,7 +26,7 @@ function EncryptedField(Sequelize, key, opt) {
 }
 
 EncryptedField.prototype.vault = function(name) {
-  var self = this;
+  const self = this;
 
   if (self.encrypted_field_name) {
     throw new Error('vault already initialized');
@@ -37,7 +37,7 @@ EncryptedField.prototype.vault = function(name) {
   return {
     type: self.Sequelize.BLOB,
     get: function() {
-      var previous = this.getDataValue(name);
+      let previous = this.getDataValue(name);
       if (!previous) {
         return {};
       }
@@ -45,17 +45,17 @@ EncryptedField.prototype.vault = function(name) {
       previous = Buffer.from(previous);
 
       function decrypt(key) {
-        var iv = previous.slice(0, self._iv_length);
-        var content = previous.slice(self._iv_length, previous.length);
-        var decipher = crypto.createDecipheriv(self._algorithm, key, iv);
+        const iv = previous.slice(0, self._iv_length);
+        const content = previous.slice(self._iv_length, previous.length);
+        const decipher = crypto.createDecipheriv(self._algorithm, key, iv);
 
-        var json =
+        const json =
           decipher.update(content, undefined, 'utf8') + decipher.final('utf8');
         return JSON.parse(json);
       }
 
-      var keyCount = self.decryptionKeys.length;
-      for (var i = 0; i < keyCount; i++) {
+      const keyCount = self.decryptionKeys.length;
+      for (let i = 0; i < keyCount; i++) {
         try {
           return decrypt(self.decryptionKeys[i]);
         } catch (error) {
@@ -67,42 +67,42 @@ EncryptedField.prototype.vault = function(name) {
     },
     set: function(value) {
       // if new data is set, we will use a new IV
-      var new_iv = crypto.randomBytes(self._iv_length);
+      const new_iv = crypto.randomBytes(self._iv_length);
 
-      var cipher = crypto.createCipheriv(
+      const cipher = crypto.createCipheriv(
         self._algorithm,
         self.encryptionKey,
         new_iv,
       );
 
       cipher.end(JSON.stringify(value), 'utf-8');
-      var enc_final = Buffer.concat([new_iv, cipher.read()]);
-      var previous = this.setDataValue(name, enc_final);
+      const enc_final = Buffer.concat([new_iv, cipher.read()]);
+      this.setDataValue(name, enc_final);
     },
   };
 };
 
 EncryptedField.prototype.field = function(name) {
-  var self = this;
+  const self = this;
 
   if (!self.encrypted_field_name) {
     throw new Error(
       'you must initialize the vault field before using encrypted fields',
     );
   }
-  var encrypted_field_name = self.encrypted_field_name;
+  const encrypted_field_name = self.encrypted_field_name;
 
   return {
     type: self.Sequelize.VIRTUAL,
     set: function set_encrypted(val) {
       // use `this` not self because we need to reference the sequelize instance
       // not our EncryptedField instance
-      var encrypted = this[encrypted_field_name];
+      const encrypted = this[encrypted_field_name];
       encrypted[name] = val;
       this[encrypted_field_name] = encrypted;
     },
     get: function get_encrypted() {
-      var encrypted = this[encrypted_field_name];
+      const encrypted = this[encrypted_field_name];
       return encrypted[name];
     },
   };
