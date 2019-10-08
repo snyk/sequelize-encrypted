@@ -19,7 +19,7 @@ function EncryptedField(Sequelize, key, opt) {
       : Array(opt.extraDecryptionKeys);
   }
   self.decryptionKeys = [key].concat(extraDecryptionKeys).map(function(key) {
-    return new Buffer(key, 'hex');
+    return Buffer.from(key, 'hex');
   });
   self.encryptionKey = self.decryptionKeys[0];
   self.Sequelize = Sequelize;
@@ -42,7 +42,7 @@ EncryptedField.prototype.vault = function(name) {
         return {};
       }
 
-      previous = new Buffer(previous);
+      previous = Buffer.from(previous);
 
       function decrypt(key) {
         var iv = previous.slice(0, self._iv_length);
