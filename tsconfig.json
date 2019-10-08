@@ -9,9 +9,11 @@
     "strict": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
+    "allowJs": true,
     "noImplicitReturns": true
   },
   "include": [
+    "./*",
     "./test/*"
   ]
 }
