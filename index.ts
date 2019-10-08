@@ -1,7 +1,17 @@
-const crypto = require('crypto');
+import * as crypto from 'crypto';
+import { Instance, Sequelize } from 'sequelize';
 
-function EncryptedField(Sequelize, key, opt) {
+type Key = string;
+
+export interface FieldOptions {
+  algorithm?: string;
+  iv_length?: number;
+  extraDecryptionKeys?: Key | Key[];
+}
+
+function EncryptedField(Sequelize: Sequelize, key: Key, opt?: FieldOptions) {
   if (!(this instanceof EncryptedField)) {
+    // @ts-ignore
     return new EncryptedField(Sequelize, key, opt);
   }
 
@@ -12,7 +22,7 @@ function EncryptedField(Sequelize, key, opt) {
   self._iv_length = opt.iv_length || 16;
   self.encrypted_field_name = undefined;
 
-  let extraDecryptionKeys = [];
+  let extraDecryptionKeys: Key[] = [];
   if (opt.extraDecryptionKeys) {
     extraDecryptionKeys = Array.isArray(opt.extraDecryptionKeys)
       ? opt.extraDecryptionKeys
@@ -25,7 +35,7 @@ function EncryptedField(Sequelize, key, opt) {
   self.Sequelize = Sequelize;
 }
 
-EncryptedField.prototype.vault = function(name) {
+EncryptedField.prototype.vault = function(name: string) {
   const self = this;
 
   if (self.encrypted_field_name) {
@@ -37,14 +47,14 @@ EncryptedField.prototype.vault = function(name) {
   return {
     type: self.Sequelize.BLOB,
     get: function() {
-      let previous = this.getDataValue(name);
-      if (!previous) {
+      let stored: string | null = this.getDataValue(name);
+      if (!stored) {
         return {};
       }
 
-      previous = Buffer.from(previous);
+      const previous: Buffer = Buffer.from(stored);
 
-      function decrypt(key) {
+      function decrypt(key: Key) {
         const iv = previous.slice(0, self._iv_length);
         const content = previous.slice(self._iv_length, previous.length);
         const decipher = crypto.createDecipheriv(self._algorithm, key, iv);
@@ -65,7 +75,7 @@ EncryptedField.prototype.vault = function(name) {
         }
       }
     },
-    set: function(value) {
+    set: function(this: Instance<unknown>, value: any) {
       // if new data is set, we will use a new IV
       const new_iv = crypto.randomBytes(self._iv_length);
 
@@ -82,7 +92,7 @@ EncryptedField.prototype.vault = function(name) {
   };
 };
 
-EncryptedField.prototype.field = function(name) {
+EncryptedField.prototype.field = function(name: string) {
   const self = this;
 
   if (!self.encrypted_field_name) {

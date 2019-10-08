@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize');
+import * as Sequelize from 'sequelize';
 const EncryptedField = require('../');
 
 const dbHost = process.env.DB_HOST || 'db';
@@ -25,16 +25,16 @@ beforeAll(async () => {
 });
 
 test('should save an encrypted field', async () => {
-  const user = User.build();
+  const user: any = User.build();
   user.private_1 = 'test';
 
   await user.save();
-  const found = await User.findById(user.id);
+  const found: any = await User.findById(user.id);
   expect(found.private_1).toEqual(user.private_1);
 });
 
 test('should support multiple encrypted fields', async () => {
-  const user = User.build();
+  const user: any = User.build();
   user.private_1 = 'baz';
   user.private_2 = 'foobar';
   await user.save();
@@ -48,7 +48,7 @@ test('should support multiple encrypted fields', async () => {
     private_1: vault.field('private_1'),
   });
 
-  const found = await AnotherUser.findById(user.id);
+  const found: any = await AnotherUser.findById(user.id);
   expect(found.private_2).toEqual(user.private_2);
 
   // encrypted with key1 and different field originally
@@ -65,13 +65,13 @@ test('should throw error on decryption using invalid key', async () => {
     private_1: badEncryptedField.field('private_1'),
   });
 
-  const model = User.build();
+  const model: any = User.build();
   model.private_1 = 'secret!';
   await model.save();
 
   let threw;
   try {
-    const found = await BadEncryptionUser.findById(model.id);
+    const found: any = await BadEncryptionUser.findById(model.id);
     found.private_1; // trigger decryption
   } catch (error) {
     threw = error;
@@ -98,15 +98,19 @@ test('should support extra decryption keys (to facilitate key rotation)', async 
 
   await KeyOneModel.sync({ force: true });
 
-  const modelUsingKeyOne = KeyOneModel.build();
-  const modelUsingKeyTwo = KeyTwoAndOneModel.build();
+  const modelUsingKeyOne: any = KeyOneModel.build();
+  const modelUsingKeyTwo: any = KeyTwoAndOneModel.build();
   modelUsingKeyOne.private = 'secret!';
   modelUsingKeyTwo.private = 'also secret!';
   await Promise.all([modelUsingKeyOne.save(), modelUsingKeyTwo.save()]);
 
   // note: both sets of data accessed via KeyTwoAndOneModel
-  const foundFromKeyOne = await KeyTwoAndOneModel.findById(modelUsingKeyOne.id);
-  const foundFromKeyTwo = await KeyTwoAndOneModel.findById(modelUsingKeyTwo.id);
+  const foundFromKeyOne: any = await KeyTwoAndOneModel.findById(
+    modelUsingKeyOne.id,
+  );
+  const foundFromKeyTwo: any = await KeyTwoAndOneModel.findById(
+    modelUsingKeyTwo.id,
+  );
 
   expect(foundFromKeyOne.private).toEqual(modelUsingKeyOne.private);
   expect(foundFromKeyTwo.private).toEqual(modelUsingKeyTwo.private);
