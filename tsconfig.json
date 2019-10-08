@@ -6,8 +6,11 @@
     "declaration": true,
     "sourceMap": true,
     "pretty": true,
-    "importHelpers": true
-
+    "importHelpers": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true
   },
   "include": [
     "./*"

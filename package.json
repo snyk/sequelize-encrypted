@@ -8,7 +8,8 @@
     "format": "npx prettier --write '*.?s' 'test/*.?s'",
     "lint": "eslint '*.?s' 'test/*.?s'",
     "test": "jest --detectOpenHandles --forceExit",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,5 @@
 import * as Sequelize from 'sequelize';
-const EncryptedField = require('../');
+import { EncryptedField } from '../index';
 
 const dbHost = process.env.DB_HOST || 'db';
 const sequelize = new Sequelize(`postgres://postgres@${dbHost}:5432/postgres`);
@@ -7,8 +7,8 @@ const sequelize = new Sequelize(`postgres://postgres@${dbHost}:5432/postgres`);
 const key1 = 'a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230e';
 const key2 = 'a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230f';
 
-const v1 = EncryptedField(Sequelize, key1);
-const v2 = EncryptedField(Sequelize, key2);
+const v1 = new EncryptedField(Sequelize, key1);
+const v2 = new EncryptedField(Sequelize, key2);
 
 const User = sequelize.define('user', {
   name: Sequelize.STRING,
@@ -39,7 +39,7 @@ test('should support multiple encrypted fields', async () => {
   user.private_2 = 'foobar';
   await user.save();
 
-  const vault = EncryptedField(Sequelize, key2);
+  const vault = new EncryptedField(Sequelize, key2);
 
   const AnotherUser = sequelize.define('user', {
     name: Sequelize.STRING,
@@ -58,7 +58,7 @@ test('should support multiple encrypted fields', async () => {
 
 test('should throw error on decryption using invalid key', async () => {
   // attempt to use key2 for vault encrypted with key1
-  const badEncryptedField = EncryptedField(Sequelize, key2);
+  const badEncryptedField = new EncryptedField(Sequelize, key2);
   const BadEncryptionUser = sequelize.define('user', {
     name: Sequelize.STRING,
     encrypted: badEncryptedField.vault('encrypted'),
@@ -81,8 +81,8 @@ test('should throw error on decryption using invalid key', async () => {
 });
 
 test('should support extra decryption keys (to facilitate key rotation)', async () => {
-  const keyOneEncryptedField = EncryptedField(Sequelize, key1);
-  const keyTwoAndOneEncryptedField = EncryptedField(Sequelize, key2, {
+  const keyOneEncryptedField = new EncryptedField(Sequelize, key1);
+  const keyTwoAndOneEncryptedField = new EncryptedField(Sequelize, key2, {
     extraDecryptionKeys: [key1],
   });
 
