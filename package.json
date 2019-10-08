@@ -4,6 +4,7 @@
   "description": "encrypted sequelize fields",
   "main": "index.js",
   "scripts": {
+    "format": "npx prettier --write '*.js' 'test/*.js'",
     "test": "mocha"
   },
   "repository": {
