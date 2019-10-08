@@ -97,3 +97,5 @@ To achieve a zero-downtime rotation from `oldKey` to `newKey`:
 ## License
 
 MIT
+
+Originally based on work by [defunctzombie](https://github.com/defunctzombie).

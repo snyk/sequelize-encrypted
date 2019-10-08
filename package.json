@@ -1,5 +1,5 @@
 {
-  "name": "sequelize-encrypted",
+  "name": "@snyk/sequelize-encrypted",
   "version": "0.1.0",
   "description": "encrypted sequelize fields",
   "main": "dist/index.js",
@@ -7,35 +7,40 @@
     "build": "tsc",
     "format": "npx prettier --write '*.?s' 'test/*.?s'",
     "lint": "eslint '*.?s' 'test/*.?s'",
-    "test": "jest --detectOpenHandles --forceExit"
+    "test": "jest --detectOpenHandles --forceExit",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/defunctzombie/sequelize-encrypted.git"
+    "url": "https://github.com/snyk/sequelize-encrypted.git"
   },
   "keywords": [
     "sequelize",
     "encrypted"
   ],
-  "author": "Roman Shtylman <shtylman@gmail.com>",
+  "author": "snyk.io",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/defunctzombie/sequelize-encrypted/issues"
+    "url": "https://github.com/snyk/sequelize-encrypted/issues"
   },
-  "homepage": "https://github.com/defunctzombie/sequelize-encrypted",
+  "homepage": "https://github.com/snyk/sequelize-encrypted",
   "devDependencies": {
     "@types/jest": "^24.0.18",
+    "@types/node": "^10.14.20",
     "@types/sequelize": "^3.30.10",
     "@typescript-eslint/eslint-plugin": "^2.3.3",
     "@typescript-eslint/parser": "^2.2.0",
-    "@types/node": "^10.14.20",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-jest": "^22.17.0",
     "jest": "^24.9.0",
     "pg": "^6.4.1",
+    "semantic-release": "^15.13.24",
     "sequelize": "^3.34.0",
     "ts-jest": "^24.1.0",
     "typescript": "^3.6.3"
+  },
+  "publishConfig": {
+    "access": "restricted"
   }
 }
