@@ -2,7 +2,8 @@ import assert from 'assert';
 import Sequelize from 'sequelize';
 import EncryptedField from '../';
 
-const sequelize = new Sequelize('postgres://postgres@db:5432/postgres');
+const dbHost = process.env.DB_HOST || 'db';
+const sequelize = new Sequelize(`postgres://postgres@${dbHost}:5432/postgres`);
 
 const key1 = 'a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230e';
 const key2 = 'a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230f';
