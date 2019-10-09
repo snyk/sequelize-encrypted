@@ -26,6 +26,10 @@ describe('sequelize-encrypted', () => {
     await User.sync({ force: true });
   });
 
+  after(async () => {
+    await sequelize.close();
+  });
+
   it('should save an encrypted field', async () => {
     const user = User.build();
     user.private_1 = 'test';
