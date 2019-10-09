@@ -24,6 +24,10 @@ beforeAll(async () => {
   await User.sync({ force: true });
 });
 
+afterAll(async () => {
+  sequelize.close();
+});
+
 test('should save an encrypted field', async () => {
   const user: any = User.build();
   user.private_1 = 'test';
