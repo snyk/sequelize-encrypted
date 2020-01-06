@@ -1,11 +1,13 @@
 dist: bionic
 sudo: false
 language: node_js
+cache: npm
 
 node_js:
   - "12"
 
 addons:
+  postgresql: "9.6"
   hosts:
     - db
 
