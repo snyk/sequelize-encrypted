@@ -1,12 +1,13 @@
+dist: bionic
+sudo: false
 language: node_js
 
 node_js:
-  - "6"
-  - "4"
+  - "12"
 
 addons:
   hosts:
     - db
 
 services:
-  - postgres
+  - postgresql
