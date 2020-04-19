@@ -37,7 +37,7 @@ export class EncryptedField {
         ? opt.extraDecryptionKeys
         : Array(opt.extraDecryptionKeys);
     }
-    this.decryptionKeys = [key].concat(extraDecryptionKeys).map(function(key) {
+    this.decryptionKeys = [key].concat(extraDecryptionKeys).map(function (key) {
       return Buffer.from(key, 'hex');
     });
     this.encryptionKey = this.decryptionKeys[0];
@@ -55,7 +55,7 @@ export class EncryptedField {
 
     return {
       type: self.Sequelize.BLOB,
-      get: function(this: Instance<unknown>) {
+      get: function (this: Instance<unknown>) {
         const stored: string | null = this.getDataValue(name);
         if (!stored) {
           return {};
@@ -85,7 +85,7 @@ export class EncryptedField {
           }
         }
       },
-      set: function(this: Instance<unknown>, value: any) {
+      set: function (this: Instance<unknown>, value: any) {
         // if new data is set, we will use a new IV
         const new_iv = crypto.randomBytes(self._iv_length);
 
@@ -113,13 +113,13 @@ export class EncryptedField {
 
     return {
       type: this.Sequelize.VIRTUAL,
-      set: function(this: any, val) {
+      set: function (this: any, val) {
         // the proxying breaks if you don't use this local
         const encrypted = this[encrypted_field_name];
         encrypted[name] = val;
         this[encrypted_field_name] = encrypted;
       },
-      get: function(this: any) {
+      get: function (this: any) {
         return this[encrypted_field_name][name];
       },
     };
