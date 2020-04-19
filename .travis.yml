@@ -1,9 +1,20 @@
 dist: bionic
 sudo: false
 language: node_js
+cache: npm
 
 node_js:
   - "12"
+
+install:
+  - npm ci
+
+script:
+  - npm run build
+  - npm run lint
+
+after_success:
+  - npm run semantic-release
 
 addons:
   hosts:
