@@ -55,7 +55,7 @@ export class EncryptedField {
 
     return {
       type: self.Sequelize.BLOB,
-      get: function (this: Instance<unknown>) {
+      get: function (this: Instance<any>) {
         const stored: string | null = this.getDataValue(name);
         if (!stored) {
           return {};
@@ -85,7 +85,7 @@ export class EncryptedField {
           }
         }
       },
-      set: function (this: Instance<unknown>, value: any) {
+      set: function (this: Instance<any>, value: any) {
         // if new data is set, we will use a new IV
         const new_iv = crypto.randomBytes(self._iv_length);
 
