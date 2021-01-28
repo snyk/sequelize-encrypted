@@ -20,13 +20,13 @@ function EncryptedField(Sequelize, key, opt) {
     }
     self.decryptionKeys = ([key].concat(extraDecryptionKeys))
         .map(function (key) {
-            return new Buffer(key, 'hex');
+            return new Buffer.from(key, 'hex');
         });
     self.encryptionKey = self.decryptionKeys[0];
     self.Sequelize = Sequelize;
 };
 
-EncryptedField.prototype.vault = function(name) {
+EncryptedField.prototype.vault = function (name) {
     var self = this;
 
     if (self.encrypted_field_name) {
@@ -37,13 +37,13 @@ EncryptedField.prototype.vault = function(name) {
 
     return {
         type: self.Sequelize.BLOB,
-        get: function() {
+        get: function () {
             var previous = this.getDataValue(name);
             if (!previous) {
                 return {};
             }
 
-            previous = new Buffer(previous);
+            previous = new Buffer.from(previous);
 
             function decrypt(key) {
                 var iv = previous.slice(0, self._iv_length);
@@ -65,7 +65,7 @@ EncryptedField.prototype.vault = function(name) {
                 }
             }
         },
-        set: function(value) {
+        set: function (value) {
             // if new data is set, we will use a new IV
             var new_iv = crypto.randomBytes(self._iv_length);
 
@@ -78,7 +78,7 @@ EncryptedField.prototype.vault = function(name) {
     }
 };
 
-EncryptedField.prototype.field = function(name) {
+EncryptedField.prototype.field = function (name) {
     var self = this;
 
     if (!self.encrypted_field_name) {
