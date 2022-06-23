@@ -2,7 +2,7 @@ import assert from 'assert';
 import Sequelize from 'sequelize';
 import EncryptedField from '../';
 
-const dbHost = process.env.DB_HOST || 'db';
+const dbHost = process.env.DB_HOST || 'localhost';
 const sequelize = new Sequelize(`postgres://postgres@${dbHost}:5432/postgres`);
 
 const key1 = 'a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230e';
@@ -24,7 +24,7 @@ describe('sequelize-encrypted', () => {
     });
 
     before('create models', async () => {
-        await User.sync({force: true});
+        await User.sync({ force: true });
     });
 
     it('should save an encrypted field', async () => {
@@ -32,11 +32,11 @@ describe('sequelize-encrypted', () => {
         user.private_1 = 'test';
 
         await user.save();
-        const found = await User.findById(user.id);
+        const found = await User.findByPk(user.id);
         assert.equal(found.private_1, user.private_1);
     });
 
-    it('should support multiple encrypted fields', async() => {
+    it('should support multiple encrypted fields', async () => {
         const user = User.build();
         user.private_1 = 'baz';
         user.private_2 = 'foobar';
@@ -51,7 +51,7 @@ describe('sequelize-encrypted', () => {
             private_1: vault.field('private_1'),
         });
 
-        const found = await AnotherUser.findById(user.id);
+        const found = await AnotherUser.findByPk(user.id);
         assert.equal(found.private_2, user.private_2);
 
         // encrypted with key1 and different field originally
@@ -59,7 +59,7 @@ describe('sequelize-encrypted', () => {
         assert.equal(found.private_1, undefined);
     });
 
-    it('should throw error on decryption using invalid key', async() => {
+    it('should throw error on decryption using invalid key', async () => {
         // attempt to use key2 for vault encrypted with key1
         const badEncryptedField = EncryptedField(Sequelize, key2);
         const BadEncryptionUser = sequelize.define('user', {
@@ -74,7 +74,7 @@ describe('sequelize-encrypted', () => {
 
         let threw;
         try {
-            const found = await BadEncryptionUser.findById(model.id)
+            const found = await BadEncryptionUser.findByPk(model.id)
             found.private_1; // trigger decryption
         } catch (error) {
             threw = error;
@@ -84,10 +84,10 @@ describe('sequelize-encrypted', () => {
             'should have thrown decryption error');
     });
 
-    it('should support extra decryption keys (to facilitate key rotation)', async() => {
+    it('should support extra decryption keys (to facilitate key rotation)', async () => {
         const keyOneEncryptedField = EncryptedField(Sequelize, key1);
         const keyTwoAndOneEncryptedField = EncryptedField(Sequelize, key2, {
-          extraDecryptionKeys: [key1],
+            extraDecryptionKeys: [key1],
         });
 
         // models both access the same table, with different encryption keys
@@ -100,7 +100,7 @@ describe('sequelize-encrypted', () => {
             private: keyTwoAndOneEncryptedField.field('private'),
         });
 
-        await KeyOneModel.sync({force: true});
+        await KeyOneModel.sync({ force: true });
 
         const modelUsingKeyOne = KeyOneModel.build();
         const modelUsingKeyTwo = KeyTwoAndOneModel.build();
@@ -112,8 +112,8 @@ describe('sequelize-encrypted', () => {
         ]);
 
         // note: both sets of data accessed via KeyTwoAndOneModel
-        const foundFromKeyOne = await KeyTwoAndOneModel.findById(modelUsingKeyOne.id);
-        const foundFromKeyTwo = await KeyTwoAndOneModel.findById(modelUsingKeyTwo.id);
+        const foundFromKeyOne = await KeyTwoAndOneModel.findByPk(modelUsingKeyOne.id);
+        const foundFromKeyTwo = await KeyTwoAndOneModel.findByPk(modelUsingKeyTwo.id);
 
         assert.equal(foundFromKeyOne.private, modelUsingKeyOne.private);
         assert.equal(foundFromKeyTwo.private, modelUsingKeyTwo.private);
