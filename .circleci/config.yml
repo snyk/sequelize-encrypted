@@ -3,6 +3,9 @@ version: 2.1
 jobs:
   test:
     docker:
+      - image: cimg/postgres:13.6
+        environment:
+          POSTGRES_HOST_AUTH_METHOD: trust
       - image: cimg/node:14.19
     working_directory: ~/lib
     steps:
@@ -39,7 +42,7 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - main
   release:
     jobs:
       - release:
@@ -48,4 +51,4 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main

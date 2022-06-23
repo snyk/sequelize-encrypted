@@ -25,5 +25,22 @@
     "mocha": "2.0.1",
     "pg": "^8",
     "sequelize": "^4"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "verifyConditions": [
+      "@semantic-release/github"
+    ],
+    "publish": [
+      "@semantic-release/github"
+    ],
+    "success": [
+      "@semantic-release/github"
+    ],
+    "fail": [
+      "@semantic-release/github"
+    ]
   }
 }
