@@ -3,7 +3,8 @@
   "description": "encrypted sequelize fields",
   "main": "index.js",
   "scripts": {
-    "lint": "true",
+    "format": "prettier --write '*.j?' 'test/*.j?'",
+    "lint": "prettier   --check '*.j?' 'test/*.j?'",
     "test": "mocha"
   },
   "repository": {
@@ -24,6 +25,7 @@
     "babel-register": "6.9.0",
     "mocha": "2.0.1",
     "pg": "^8.5.1",
+    "prettier": "~2.7.1",
     "sequelize": "^6.19"
   },
   "release": {
