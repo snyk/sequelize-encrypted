@@ -1,6 +1,6 @@
-import assert from 'assert';
-import Sequelize from 'sequelize';
-import EncryptedField from '../';
+const assert = require('assert');
+const Sequelize = require('sequelize');
+const EncryptedField = require('..');
 
 const dbHost = process.env.DB_HOST || 'localhost';
 const sequelize = new Sequelize(`postgres://postgres@${dbHost}:5432/postgres`);
