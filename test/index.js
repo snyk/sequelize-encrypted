@@ -33,6 +33,25 @@ describe('sequelize-encrypted', () => {
     await user.save();
     const found = await User.findByPk(user.id);
     assert.equal(found.private_1, user.private_1);
+    assert.equal(found.changed(), false);
+  });
+
+  it('should not reencrypt/change when building from a serialized ORM object with no encrypted values', async () => {
+    const user = User.build();
+    user.name = 'Test User';
+
+    await user.save();
+    const plainUser = JSON.stringify(user.get({ plain: true }));
+
+    const rehydratedUser = User.build(JSON.parse(plainUser), {
+      isNewRecord: false,
+    });
+
+    assert.equal(rehydratedUser.changed().includes('encrypted'), false);
+    assert.equal(rehydratedUser.changed().includes('another_encrypted'), false);
+
+    // User can still be saved...
+    await rehydratedUser.save();
   });
 
   it('should support multiple encrypted fields', async () => {

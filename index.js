@@ -66,6 +66,11 @@ EncryptedField.prototype.vault = function (name) {
       }
     },
     set: function (value) {
+      // If we're given an empty value, and nothing was previously stored in the vault,
+      // then we can skip this `set` call.
+      if (value && Object.keys(value).length === 0 && !this.getDataValue(name))
+        return;
+
       // if new data is set, we will use a new IV
       const new_iv = crypto.randomBytes(self._iv_length);
 
