@@ -188,4 +188,37 @@ describe('sequelize-encrypted', () => {
       user['dataValues']['another_encrypted'],
     );
   });
+
+  it('should treat providing an empty encrypted vault the same as an empty object', async () => {
+    const user = User.build();
+    await user.save();
+
+
+    const user2 = User.build();
+    user2.encrypted = {};
+
+    const found = await User.findByPk(user.id);
+    
+    assert.equal(user['dataValues']['encrypted'], undefined);
+    assert.equal(user2['dataValues']['encrypted'], undefined);
+    assert.equal(found['dataValues']['encrypted'], undefined);
+  });
+
+  it('should support clearing an existing vault using an empty object set', async () => {
+    const user = User.build();
+    user.private_1 = 'abc';
+    await user.save();
+
+
+    const found = await User.findByPk(user.id);
+
+    assert.notEqual(found['dataValues']['encrypted'], undefined);
+
+    // Clear the encrypted vault
+    found.encrypted = {};
+    await found.save();
+
+    const found2 = await User.findByPk(user.id);
+    assert.equal(JSON.stringify(found2.encrypted), "{}")
+  });
 });
