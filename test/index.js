@@ -193,12 +193,11 @@ describe('sequelize-encrypted', () => {
     const user = User.build();
     await user.save();
 
-
     const user2 = User.build();
     user2.encrypted = {};
 
     const found = await User.findByPk(user.id);
-    
+
     assert.equal(user['dataValues']['encrypted'], undefined);
     assert.equal(user2['dataValues']['encrypted'], undefined);
     assert.equal(found['dataValues']['encrypted'], undefined);
@@ -209,7 +208,6 @@ describe('sequelize-encrypted', () => {
     user.private_1 = 'abc';
     await user.save();
 
-
     const found = await User.findByPk(user.id);
 
     assert.notEqual(found['dataValues']['encrypted'], undefined);
@@ -219,6 +217,6 @@ describe('sequelize-encrypted', () => {
     await found.save();
 
     const found2 = await User.findByPk(user.id);
-    assert.equal(JSON.stringify(found2.encrypted), "{}")
+    assert.equal(JSON.stringify(found2.encrypted), '{}');
   });
 });
