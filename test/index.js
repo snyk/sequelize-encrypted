@@ -147,12 +147,18 @@ describe('sequelize-encrypted', () => {
     await user.save();
 
     const foundUser = await User.findByPk(user.id);
-    
+
     // Assert initial encryption works as expected
     assert.equal(foundUser.private_1, user.private_1);
     assert.equal(foundUser.private_2, user.private_2);
-    assert.equal(JSON.stringify(foundUser.encrypted), JSON.stringify(user.encrypted));
-    assert.equal(JSON.stringify(foundUser.another_encrypted), JSON.stringify(user.another_encrypted));
+    assert.equal(
+      JSON.stringify(foundUser.encrypted),
+      JSON.stringify(user.encrypted),
+    );
+    assert.equal(
+      JSON.stringify(foundUser.another_encrypted),
+      JSON.stringify(user.another_encrypted),
+    );
 
     // Reencrypt by setting to self
     foundUser.encrypted = foundUser.encrypted;
@@ -163,11 +169,23 @@ describe('sequelize-encrypted', () => {
 
     assert.equal(foundUser2.private_1, user.private_1);
     assert.equal(foundUser2.private_2, user.private_2);
-    assert.equal(JSON.stringify(foundUser2.encrypted), JSON.stringify(user.encrypted));
-    assert.equal(JSON.stringify(foundUser2.another_encrypted), JSON.stringify(user.another_encrypted));
+    assert.equal(
+      JSON.stringify(foundUser2.encrypted),
+      JSON.stringify(user.encrypted),
+    );
+    assert.equal(
+      JSON.stringify(foundUser2.another_encrypted),
+      JSON.stringify(user.another_encrypted),
+    );
 
     // Backing data should change as part of reencryption
-    assert.notEqual(foundUser2['dataValues']['encrypted'], user['dataValues']['encrypted']);
-    assert.notEqual(foundUser2['dataValues']['another_encrypted'], user['dataValues']['another_encrypted']);
-  })
+    assert.notEqual(
+      foundUser2['dataValues']['encrypted'],
+      user['dataValues']['encrypted'],
+    );
+    assert.notEqual(
+      foundUser2['dataValues']['another_encrypted'],
+      user['dataValues']['another_encrypted'],
+    );
+  });
 });
