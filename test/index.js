@@ -33,6 +33,25 @@ describe('sequelize-encrypted', () => {
     await user.save();
     const found = await User.findByPk(user.id);
     assert.equal(found.private_1, user.private_1);
+    assert.equal(found.changed(), false);
+  });
+
+  it('should not reencrypt/change when building from a serialized ORM object with no encrypted values', async () => {
+    const user = User.build();
+    user.name = 'Test User';
+
+    await user.save();
+    const plainUser = JSON.stringify(user.get({ plain: true }));
+
+    const rehydratedUser = User.build(JSON.parse(plainUser), {
+      isNewRecord: false,
+    });
+
+    assert.equal(rehydratedUser.changed().includes('encrypted'), false);
+    assert.equal(rehydratedUser.changed().includes('another_encrypted'), false);
+
+    // User can still be saved...
+    await rehydratedUser.save();
   });
 
   it('should support multiple encrypted fields', async () => {
@@ -119,5 +138,85 @@ describe('sequelize-encrypted', () => {
 
     assert.equal(foundFromKeyOne.private, modelUsingKeyOne.private);
     assert.equal(foundFromKeyTwo.private, modelUsingKeyTwo.private);
+  });
+
+  it('should support reencryption properly', async () => {
+    const user = User.build();
+    user.private_1 = 'baz';
+    user.private_2 = 'foobar';
+    await user.save();
+
+    const foundUser = await User.findByPk(user.id);
+
+    // Assert initial encryption works as expected
+    assert.equal(foundUser.private_1, user.private_1);
+    assert.equal(foundUser.private_2, user.private_2);
+    assert.equal(
+      JSON.stringify(foundUser.encrypted),
+      JSON.stringify(user.encrypted),
+    );
+    assert.equal(
+      JSON.stringify(foundUser.another_encrypted),
+      JSON.stringify(user.another_encrypted),
+    );
+
+    // Reencrypt by setting to self
+    foundUser.encrypted = foundUser.encrypted;
+    foundUser.another_encrypted = foundUser.another_encrypted;
+    await foundUser.save();
+
+    const foundUser2 = await User.findByPk(user.id);
+
+    assert.equal(foundUser2.private_1, user.private_1);
+    assert.equal(foundUser2.private_2, user.private_2);
+    assert.equal(
+      JSON.stringify(foundUser2.encrypted),
+      JSON.stringify(user.encrypted),
+    );
+    assert.equal(
+      JSON.stringify(foundUser2.another_encrypted),
+      JSON.stringify(user.another_encrypted),
+    );
+
+    // Backing data should change as part of reencryption
+    assert.notEqual(
+      foundUser2['dataValues']['encrypted'],
+      user['dataValues']['encrypted'],
+    );
+    assert.notEqual(
+      foundUser2['dataValues']['another_encrypted'],
+      user['dataValues']['another_encrypted'],
+    );
+  });
+
+  it('should treat providing an empty encrypted vault the same as an empty object', async () => {
+    const user = User.build();
+    await user.save();
+
+    const user2 = User.build();
+    user2.encrypted = {};
+
+    const found = await User.findByPk(user.id);
+
+    assert.equal(user['dataValues']['encrypted'], undefined);
+    assert.equal(user2['dataValues']['encrypted'], undefined);
+    assert.equal(found['dataValues']['encrypted'], undefined);
+  });
+
+  it('should support clearing an existing vault using an empty object set', async () => {
+    const user = User.build();
+    user.private_1 = 'abc';
+    await user.save();
+
+    const found = await User.findByPk(user.id);
+
+    assert.notEqual(found['dataValues']['encrypted'], undefined);
+
+    // Clear the encrypted vault
+    found.encrypted = {};
+    await found.save();
+
+    const found2 = await User.findByPk(user.id);
+    assert.equal(JSON.stringify(found2.encrypted), '{}');
   });
 });

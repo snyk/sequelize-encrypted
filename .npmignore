@@ -1,0 +1,6 @@
+.circleci
+.github
+.prettierrc.json
+.gitleaksignore
+catalog-info.yaml
+test/

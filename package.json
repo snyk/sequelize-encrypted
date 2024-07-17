@@ -2,6 +2,7 @@
   "name": "@snyk/sequelize-encrypted",
   "description": "encrypted sequelize fields",
   "main": "index.js",
+  "version": "0.5.1",
   "scripts": {
     "format": "prettier --write '*.j?' 'test/*.j?'",
     "lint": "prettier   --check '*.j?' 'test/*.j?'",
